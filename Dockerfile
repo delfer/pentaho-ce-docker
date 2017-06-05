@@ -7,23 +7,32 @@ RUN	apt-get update \
 	&& apt-get clean all \
 	&& rm -rf /var/lib/apt/lists/*
 
+ENV	PENTAHO_VERSION=7.1 \
+	PENTAHO_ARCHIVE=pentaho-server-ce-7.1.0.0-12.zip
+
 #getting Pentaho distrib
-ADD https://downloads.sourceforge.net/project/pentaho/Business%20Intelligence%20Server/7.1/pentaho-server-ce-7.1.0.0-12.zip /usr/local/tomcat/
-#ADD pentaho-server-ce-7.1.0.0-12.zip /usr/local/tomcat/
+ADD https://downloads.sourceforge.net/project/pentaho/Business%20Intelligence%20Server/$PENTAHO_VERSION/$PENTAHO_ARCHIVE $CATALINA_HOME
+#ADD $PENTAHO_ARCHIVE $CATALINA_HOME
 
 #unpack and install
-RUN	unzip pentaho-server-ce-7.1.0.0-12.zip  \
-	&& rm -rf /usr/local/tomcat/webapps \
-	&& mv pentaho-server/tomcat/webapps /usr/local/tomcat/webapps \
-	&& mv -n pentaho-server/tomcat/lib/* /usr/local/tomcat/lib/ \
-	&& mv  pentaho-server/data /usr/ \
+RUN	unzip $PENTAHO_ARCHIVE  \
+	&& rm -rf webapps \
+	&& mv pentaho-server/tomcat/webapps webapps \
+	&& mv -n pentaho-server/tomcat/lib/* lib/ \
+	&& mv pentaho-server/data /usr/data_empty \
+	&& mkdir /usr/data \
 	&& mv pentaho-server/pentaho-solutions /usr/local/ \
 	&& rm -rf pentaho-server \
-	&& rm -f pentaho-server-ce-7.1.0.0-12.zip
+	&& rm -f $PENTAHO_ARCHIVE
 
 #configure
 ENV 	DI_HOME=/usr/local/pentaho-solutions/system/kettle \
 	PENTAHO_JAVA_HOME="$JAVA_HOME"
 ENV	CATALINA_OPTS="-Djava.awt.headless=true -Xms2048m -Xmx6144m -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -Dfile.encoding=utf8 -DDI_HOME=$DI_HOME"
 
+VOLUME ["/usr/data" \
+	,"/usr/local/pentaho-solutions/system/jackrabbit/repository"]
 EXPOSE 8080
+
+ADD startup.sh $CATALINA_HOME/
+CMD ["sh", "startup.sh"]
