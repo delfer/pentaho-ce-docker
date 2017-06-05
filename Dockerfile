@@ -19,20 +19,24 @@ RUN	unzip $PENTAHO_ARCHIVE  \
 	&& rm -rf webapps \
 	&& mv pentaho-server/tomcat/webapps webapps \
 	&& mv -n pentaho-server/tomcat/lib/* lib/ \
-	&& mv pentaho-server/data /usr/data_empty \
-	&& mkdir /usr/data \
+	&& mv pentaho-server/data /usr/data \
 	&& mv pentaho-server/pentaho-solutions /usr/local/ \
 	&& rm -rf pentaho-server \
 	&& rm -f $PENTAHO_ARCHIVE
+
+#Prepare persistent mount point
+RUN	mkdir -p /volume/repository \
+	&& cp -rp /usr/data/hsqldb /volume/ \
+	&& rm -rf /usr/data/hsqldb \
+	&& ln -s /volume/repository /usr/local/pentaho-solutions/system/jackrabbit/repository \
+	&& ln -s /volume/hsqldb /usr/data/hsqldb 
+	
 
 #configure
 ENV 	DI_HOME=/usr/local/pentaho-solutions/system/kettle \
 	PENTAHO_JAVA_HOME="$JAVA_HOME"
 ENV	CATALINA_OPTS="-Djava.awt.headless=true -Xms2048m -Xmx6144m -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -Dfile.encoding=utf8 -DDI_HOME=$DI_HOME"
 
-VOLUME ["/usr/data" \
-	,"/usr/local/pentaho-solutions/system/jackrabbit/repository"]
+VOLUME /volume
 EXPOSE 8080
 
-ADD startup.sh $CATALINA_HOME/
-CMD ["sh", "startup.sh"]
