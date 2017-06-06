@@ -16,6 +16,8 @@ ADD https://downloads.sourceforge.net/project/pentaho/Business%20Intelligence%20
 
 #unpack and install
 RUN	unzip $PENTAHO_ARCHIVE  \
+	&& rm -rf pentaho-server/pentaho-solutions/system/kettle/plugins/pentaho-big-data-plugin \
+	&& rm -rf pentaho-server/pentaho-solutions/system/kettle/plugins/elasticsearch-bulk-insert-plugin \
 	&& rm -rf webapps \
 	&& mv pentaho-server/tomcat/webapps webapps \
 	&& mv -n pentaho-server/tomcat/lib/* lib/ \
