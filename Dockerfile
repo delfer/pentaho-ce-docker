@@ -7,25 +7,21 @@ RUN	apt-get update \
 	&& apt-get clean all \
 	&& rm -rf /var/lib/apt/lists/*
 
-ENV	PENTAHO_VERSION=7.1 \
+ENV	PENTAHO_REPOSITORY=https://downloads.sourceforge.net/project/pentaho/Business%20Intelligence%20Server/7.1 \
 	PENTAHO_ARCHIVE=pentaho-server-ce-7.1.0.0-12.zip
 
-#getting Pentaho distrib
-ADD https://downloads.sourceforge.net/project/pentaho/Business%20Intelligence%20Server/$PENTAHO_VERSION/$PENTAHO_ARCHIVE $CATALINA_HOME
-#ADD $PENTAHO_ARCHIVE $CATALINA_HOME
-
 #unpack and install
-RUN	unzip $PENTAHO_ARCHIVE  \
+RUN	wget --progress=bar:force $PENTAHO_REPOSITORY/$PENTAHO_ARCHIVE \
+	&& unzip $PENTAHO_ARCHIVE  \
 	&& rm -rf webapps \
 	&& mv pentaho-server/tomcat/webapps webapps \
 	&& mv -n pentaho-server/tomcat/lib/* lib/ \
 	&& mv pentaho-server/data /usr/data \
 	&& mv pentaho-server/pentaho-solutions /usr/local/ \
 	&& rm -rf pentaho-server \
-	&& rm -f $PENTAHO_ARCHIVE
-
+	&& rm -f $PENTAHO_ARCHIVE \
 #Prepare persistent mount point
-RUN	mkdir -p /volume/repository \
+	&& mkdir -p /volume/repository \
 	&& cp -rp /usr/data/hsqldb /volume/ \
 	&& rm -rf /usr/data/hsqldb \
 	&& ln -s /volume/repository /usr/local/pentaho-solutions/system/jackrabbit/repository \
